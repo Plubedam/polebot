@@ -1,0 +1,23 @@
+{
+  "name": "polebot",
+  "version": "1.0.0",
+  "description": "Telegram Bot for Poles",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/index.js"
+  },
+  "keywords": [
+    "bot",
+    "telegram",
+    "poles"
+  ],
+  "author": "Plubedam",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "moment-timezone": "^0.5.45",
+    "mongodb": "^6.7.0",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
