@@ -13,6 +13,10 @@ ${positions.join('\n')}
 }
 
 async function main() {
+    process.on('uncaughtException', function (err) {
+        console.log('Caught exception: ', err);
+    });
+
     console.log("Connecting to MongoDB...");
     const db = await MongoDbModule.connectDB();
     console.log({db});
@@ -31,7 +35,7 @@ async function main() {
         // Insert pole
         const res = await MongoDbModule.addPole(currentTimestamp, userName, user.id, chatId);
 
-        if (res.upsertedCount >= -1)  {            
+        if (res.upsertedCount >= 1)  {            
             const ranking = await MongoDbModule.updatePolesRanking(chatId, user);
             const msg = `
 Pole para <b>${userName}.</b>

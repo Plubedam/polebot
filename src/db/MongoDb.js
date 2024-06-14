@@ -1,5 +1,8 @@
 const { MongoClient  } = require('mongodb');
 
+const POLES_COLLECTION = "Poles";
+const RANKING_COLLECTION = "Ranking"
+
 let db;
 
 /**
@@ -8,14 +11,25 @@ let db;
  */
 async function connectDB() {
     const uri = process.env.MONGODB_URI;
-    const cliente = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 
     try {
         console.log("Trying MongoDB");
-        await cliente.connect();
+        await client.connect();
+        db = client.db();
 
-        console.log("Conectado a la base de datos MongoDB");
-        db = cliente.db();
+        console.log("Connected to MongoDB");
+
+        // Check if Collections exists, if not create them
+        const polesCollection = await db.listCollections({ name: POLES_COLLECTION }).toArray();
+        if (polesCollection.length === 0) {
+            await db.createCollection(POLES_COLLECTION);
+        }
+        const rankingCollection = await db.listCollections({ name: RANKING_COLLECTION }).toArray();
+        if (rankingCollection.length === 0) {
+            await db.createCollection(RANKING_COLLECTION);
+        }
+
         return db;
     } catch (e) {
         console.error(e);
@@ -32,7 +46,7 @@ async function connectDB() {
  */
 async function addPole(id, user, userId, chatId) {
     try {
-        const polesCollection = db.collection('Poles');
+        const polesCollection = db.collection(POLES_COLLECTION);
         const res = await polesCollection.updateOne(
             {"id": id, "chatId": chatId},
             { $setOnInsert: {
@@ -75,7 +89,7 @@ const generateRanking = (users) => {
  */
 async function getPolesRanking(chatId) {
     try {
-        const rankingCollection = db.collection('Ranking');
+        const rankingCollection = db.collection(RANKING_COLLECTION);
         const ranking = await rankingCollection.find({chatId}).toArray();
 
         if (ranking.length === 1) {
@@ -95,7 +109,7 @@ async function getPolesRanking(chatId) {
  */
 async function updatePolesRanking(chatId, {username, id}) {
     try {
-        const rankingCollection = db.collection('Ranking');
+        const rankingCollection = db.collection(RANKING_COLLECTION);
         const ranking = await rankingCollection.find({chatId}).toArray();
 
         if (ranking.length === 0) {
