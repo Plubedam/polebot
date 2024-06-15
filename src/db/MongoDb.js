@@ -132,7 +132,12 @@ async function updatePolesRanking(chatId, {username, id}) {
         let users = ranking[0].users;
         if (users.find(u => u.id === id)) {
             users = users.map(user => {
-                if (user.id === id) user.count++;
+                // Increase pole count
+                if (user.id === id) {
+                    user.count++;
+                    // Check if user changed their name and update it
+                    if (user.name !== username) user.username = username;
+                }
                 return user;
             });
         } 
