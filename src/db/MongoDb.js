@@ -136,7 +136,7 @@ async function updatePolesRanking(chatId, {username, id}) {
                 if (user.id === id) {
                     user.count++;
                     // Check if user changed their name and update it
-                    if (user.name !== username) user.username = username;
+                    if (user.name !== username) user.name = username;
                 }
                 return user;
             });
