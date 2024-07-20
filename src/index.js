@@ -5,6 +5,8 @@ const MongoDbModule = require('./db/MongoDb');
 const getDayTimestamp = require('./utils/DateUtils');
 
 const TOKEN = process.env.TELEGRAM_TOKEN;
+const SCHEDULED_POLE_REPLY="Las poles programadas hacen llorar al niño Jesús";
+const NO_RANKING_FOUND = "Ranking no existente para este chat.";
 
 const rankingBuilder = (positions) => {
     return `Ranking de poles:
@@ -45,6 +47,11 @@ async function main() {
             return
         }
 
+        if (msg.is_from_offline) {
+            bot.sendMessage(chatId, SCHEDULED_POLE_REPLY, {reply_to_message_id: msg.message_id})
+            return
+        }
+
         // Insert pole
         const res = await MongoDbModule.addPole(currentTimestamp, userName, user.id, chatId);
         polesDic[chatId] = currentTimestamp;
@@ -63,13 +70,12 @@ ${rankingBuilder(ranking)}
      * !Ranking command
      */
     bot.onText(/!ranking/, async (msg) => {
-        const notFoundMsg = `Ranking no existente para este chat.`;
         const chatId = msg.chat.id;
 
         // Get Ranking
         const res = await MongoDbModule.getPolesRanking(chatId);
         if (res === null) {
-            bot.sendMessage(chatId, notFoundMsg);
+            bot.sendMessage(chatId, NO_RANKING_FOUND);
         } else {
             const msg = rankingBuilder(res);
             bot.sendMessage(chatId, msg);
