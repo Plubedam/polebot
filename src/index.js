@@ -12,6 +12,8 @@ ${positions.join('\n')}
 `
 }
 
+let polesDic = {}
+
 async function main() {
     process.on('uncaughtException', function (err) {
         console.log('Caught exception: ', err);
@@ -21,29 +23,41 @@ async function main() {
     const db = await MongoDbModule.connectDB();
     console.log({db});
 
+    // Failed to connect to DB
+    if (!db) {
+        process.exit(1);
+    }
+
     const bot = new TelegramBot(TOKEN, {polling: true});
 
     /**
-     * !Pole command
+     * !Pole command: 
+     *  Any type of message will trigger a pole position if it is
+     *  the first of the day
      */
-    bot.onText(/!pole/, async (msg) => {
+    bot.on("message", async (msg) => {
         const user = msg.from;
         const userName = user.username;
         const chatId = msg.chat.id;
         const currentTimestamp = getDayTimestamp();
 
+        if (polesDic[chatId] && polesDic[chatId] == currentTimestamp) {
+            return
+        }
+
         // Insert pole
         const res = await MongoDbModule.addPole(currentTimestamp, userName, user.id, chatId);
+        polesDic[chatId] = currentTimestamp;
 
         if (res.upsertedCount >= 1)  {            
             const ranking = await MongoDbModule.updatePolesRanking(chatId, user);
-            const msg = `
+            const botMsg = `
 Pole para <b>${userName}.</b>
 ${rankingBuilder(ranking)}
 `
-            bot.sendMessage(chatId, msg, {parse_mode:'HTML'})
+            bot.sendMessage(chatId, botMsg, {parse_mode:'HTML', reply_to_message_id: msg.message_id})
         }
-    });
+    })
 
     /**
      * !Ranking command
